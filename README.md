@@ -1,6 +1,24 @@
 # dev-ci-kit
 
+![动态示意：代码变更经过 Java、前端、安全扫描和 AI Review 检查](docs/assets/ci-pipeline.gif)
+
 可复用的 GitHub Actions CI 工作流和 Codex Skill，帮助 Maven Java、npm 前端项目接入构建、测试、依赖漏洞扫描与 AI 代码审查。
+
+## 工作流程
+
+```mermaid
+flowchart LR
+    A[业务仓库提交或 PR] --> B[GitHub Actions]
+    B --> C[Java 编译与测试]
+    B --> D[前端检查与构建]
+    B --> E[OSV 依赖扫描]
+    B --> F[OCR AI 审查]
+    F -->|符合条件的 PR| G[DeepSeek]
+    G --> H[PR 审查意见]
+    C & D & E --> I[检查结果与测试报告]
+```
+
+具体触发条件以接入仓库的工作流配置为准；OCR 仅在符合下文条件的 PR 中运行。
 
 ## 包含什么
 
