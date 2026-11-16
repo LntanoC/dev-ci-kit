@@ -1,0 +1,61 @@
+name: Reusable Java checks
+on:
+  workflow_call:
+    inputs:
+      java-version:
+        type: string
+        default: '17'
+      working-directory:
+        type: string
+        default: '.'
+      run-compile:
+        type: boolean
+        default: true
+      run-tests:
+        type: boolean
+        default: true
+      report-path:
+        type: string
+        default: '**/target/surefire-reports/'
+jobs:
+  java:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.java-version }}
+          cache: maven
+          cache-dependency-path: ${{ format('{0}/**/pom.xml', inputs.working-directory) }}
+      - name: Compile
+        if: inputs.run-compile
+        shell: bash
+        run: |
+          if [ -f ./mvnw ]; then
+            bash ./mvnw -B -q -DskipTests compile
+          else
+            mvn -B -q -DskipTests compile
+          fi
+      - name: Test
+        if: inputs.run-tests
+        shell: bash
+        run: |
+          if [ -f ./mvnw ]; then
+            bash ./mvnw -B -q test
+          else
+            mvn -B -q test
+          fi
+      - name: Upload test reports
+        if: ${{ always() && inputs.run-tests }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-test-reports-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ inputs.report-path }}
+          if-no-files-found: ignore

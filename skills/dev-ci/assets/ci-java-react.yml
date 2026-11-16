@@ -1,0 +1,41 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  java:
+    permissions:
+      contents: read
+    uses: LntanoC/dev-ci-kit/.github/workflows/java.yml@main
+    with:
+      java-version: '17'
+      working-directory: '.'
+
+  frontend:
+    permissions:
+      contents: read
+    uses: LntanoC/dev-ci-kit/.github/workflows/frontend.yml@main
+    with:
+      node-version: '22'
+      working-directory: frontend
+
+  security:
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    uses: LntanoC/dev-ci-kit/.github/workflows/security.yml@main
+
+  ocr:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: LntanoC/dev-ci-kit/.github/workflows/ocr-review.yml@main
+    with:
+      model: deepseek-flash
+    secrets:
+      api-key: ${{ secrets.DEEPSEEK_API_KEY }}

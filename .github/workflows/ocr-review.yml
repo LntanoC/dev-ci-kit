@@ -1,0 +1,56 @@
+name: Reusable AI review
+on:
+  workflow_call:
+    inputs:
+      model:
+        type: string
+        default: deepseek-flash
+      language:
+        type: string
+        default: Chinese
+      review-concurrency:
+        type: string
+        default: '1'
+    secrets:
+      api-key:
+        required: true
+jobs:
+  review:
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (github.event.pull_request.author_association == 'OWNER' ||
+       github.event.pull_request.author_association == 'MEMBER' ||
+       github.event.pull_request.author_association == 'COLLABORATOR') &&
+      !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      OCR_NO_UPDATE: '1'
+    concurrency:
+      group: dev-ci-kit-ocr-${{ github.repository }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Check API key
+        shell: bash
+        env:
+          REVIEW_API_KEY: ${{ secrets.api-key }}
+        run: |
+          if [ -z "$REVIEW_API_KEY" ]; then
+            echo 'Provide the required OCR API key as a GitHub Actions secret.' >&2
+            exit 1
+          fi
+      - name: Review pull request
+        uses: alibaba/open-code-review@main
+        with:
+          llm_url: https://api.deepseek.com/chat/completions
+          llm_auth_token: ${{ secrets.api-key }}
+          llm_model: ${{ inputs.model }}
+          llm_use_anthropic: 'false'
+          ocr_version: latest
+          language: ${{ inputs.language }}
+          review_concurrency: ${{ inputs.review-concurrency }}
+          upload_artifacts: 'false'

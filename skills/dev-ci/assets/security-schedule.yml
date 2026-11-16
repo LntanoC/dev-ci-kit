@@ -1,0 +1,13 @@
+name: Scheduled dependency scan
+on:
+  schedule:
+    - cron: '23 2 * * 1'
+  workflow_dispatch:
+
+jobs:
+  security:
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    uses: LntanoC/dev-ci-kit/.github/workflows/security.yml@main
