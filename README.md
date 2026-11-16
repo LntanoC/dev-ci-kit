@@ -26,6 +26,14 @@ Java 测试是否需要数据库等服务取决于业务项目；本工具不会
 
 将本仓库的 `skills/dev-ci` 安装为 Codex Skill，之后可在目标项目中要求 Codex 使用 `$dev-ci` 接入或检查 CI。安装后如果 Codex 没有发现新 Skill，重启 Codex 或开启新会话。Skill 帮助检查项目并生成适配配置，实际 CI 由 GitHub Actions 运行。
 
+例如，在安装了 Codex Skill Installer 的 Windows PowerShell 中执行：
+
+```powershell
+python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-skill-from-github.py" --repo LntanoC/dev-ci-kit --path skills/dev-ci
+```
+
+也可以在 Codex 中要求使用 `$skill-installer` 安装 `LntanoC/dev-ci-kit` 仓库的 `skills/dev-ci`。已有同名 Skill 时先确认更新方式，避免覆盖本地修改。
+
 Skill 是安装时的本地副本，**不会自动随仓库更新**；要获得最新的 Skill 指令和示例，需要重新安装或更新本地副本。业务仓库使用示例中的 `@main` 调用远程工作流，每次运行使用当时的 `main`；OCR Action 引用上游 `@main`，并安装当时的 npm `latest`。因此即使业务仓库没有改动，运行结果和行为也可能变化，上游更新可能引入故障或供应链风险。需要稳定性时可改为经过验证的提交 SHA 和版本，并建立升级机制。
 
 ## AI 审查的边界
