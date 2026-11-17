@@ -44,6 +44,12 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(job['permissions']['contents'], 'read')
         self.assertEqual(job['permissions']['pull-requests'], 'write')
 
+    def test_examples_use_generic_llm_secret(self):
+        ci = load(ASSETS / 'ci-java-react.yml')
+        audit = load(ASSETS / 'security-audit-manual.yml')
+        self.assertEqual(ci['jobs']['ocr']['secrets']['api-key'], '${{ secrets.LLM_API_KEY }}')
+        self.assertEqual(audit['jobs']['audit']['secrets']['deepseek-api-key'], '${{ secrets.LLM_API_KEY }}')
+
     def test_no_workflow_uses_pull_request_target(self):
         for path in list(WORKFLOWS.glob('*.yml')) + list(ASSETS.glob('*.yml')):
             with self.subTest(path=path):

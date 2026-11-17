@@ -27,8 +27,8 @@ jobs:
       run:
         working-directory: ${{ inputs.working-directory }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: ${{ inputs.java-version }}
@@ -54,7 +54,7 @@ jobs:
           fi
       - name: Upload test reports
         if: ${{ always() && inputs.run-tests }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: java-test-reports-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ inputs.report-path }}

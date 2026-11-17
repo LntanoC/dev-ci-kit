@@ -13,19 +13,19 @@ jobs:
       contents: read
     steps:
       - name: Check out target
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: target
           persist-credentials: false
       - name: Check out audit guidance
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: cloudflare/security-audit-skill
           path: audit-guidance
           persist-credentials: false
       - name: Record audit guidance version
         run: git -C audit-guidance rev-parse HEAD
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '24'
       - name: Install DeepSeek Harness
@@ -59,7 +59,7 @@ jobs:
           PROMPT
           test -s "$RUNNER_TEMP/security-audit-report.md"
       - name: Upload report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: security-audit-report-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/security-audit-report.md

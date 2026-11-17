@@ -7,4 +7,4 @@ jobs:
       contents: read
     uses: LntanoC/dev-ci-kit/.github/workflows/security-audit.yml@main
     secrets:
-      deepseek-api-key: ${{ secrets.DEEPSEEK_API_KEY }}
+      deepseek-api-key: ${{ secrets.LLM_API_KEY }}

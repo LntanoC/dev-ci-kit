@@ -1,38 +1,44 @@
 flowchart LR
-  subgraph consumer[业务项目]
+  subgraph setup[业务项目与接入]
     direction TB
-    ci[ci.yml<br/>推送与 PR]
-    manual[security-audit.yml<br/>手动触发]
-    sched[security-schedule.yml<br/>定时或手动]
+    helper[编程 Agent<br/>按项目配置 CI]
+    ci[业务项目工作流<br/>推送 / PR / 手动]
+    secret[GitHub Secret<br/>LLM_API_KEY]
   end
-  subgraph kit[dev-ci-kit 可复用工作流]
+  subgraph kit[dev-ci-kit]
     direction TB
-    java[java.yml<br/>编译与测试]
-    front[frontend.yml<br/>lint 与构建]
+    guide[dev-ci Skill 与模板<br/>指导接入]
+    java[Java / 前端工作流<br/>编译、测试、构建]
     osv[security.yml<br/>依赖漏洞扫描]
     ocr[ocr-review.yml<br/>PR 代码审查]
-    audit[security-audit.yml<br/>源码安全审查]
+    audit[security-audit.yml<br/>手动源码审查]
   end
-  subgraph runtime[执行工具与结果（含外部服务）]
+  subgraph execution[执行工具与结果]
     direction TB
-    build[Maven / npm<br/>构建与测试报告]
+    build[Maven / npm<br/>检查与测试报告]
     scan[OSV-Scanner<br/>依赖扫描结果]
-    review[OpenCodeReview + DeepSeek<br/>PR 审查意见]
-    agent[DeepSeek Harness + DeepSeek<br/>参考 Cloudflare 指引]
+    review[OpenCodeReview<br/>PR 审查意见]
+    agent[DeepSeek Harness<br/>参考 Cloudflare 指引]
     report[Actions Artifact<br/>源码审查报告]
   end
-  ci --> java & front & osv & ocr
-  sched --> osv
-  manual --> audit
-  java & front --> build
+  model[模型服务<br/>当前工作流默认 DeepSeek]
+  guide -.指导.-> helper
+  helper -->|配置| ci
+  ci --> java & osv & ocr & audit
+  secret -.密钥映射.-> ocr & audit
+  java --> build
   osv --> scan
   ocr --> review
   audit --> agent --> report
+  review -->|模型请求| model
+  agent -->|模型请求| model
   classDef source fill:#e5f4f2,stroke:#29918e,color:#15383c;
   classDef workflow fill:#ece7fa,stroke:#7962bc,color:#292143;
   classDef tool fill:#e5effc,stroke:#4e82c4,color:#1b3555;
   classDef outcome fill:#e5f5e8,stroke:#55a66b,color:#193d24;
-  class ci,manual,sched source;
-  class java,front,osv,ocr,audit workflow;
-  class agent tool;
-  class build,scan,review,report outcome;
+  classDef external fill:#fff1dc,stroke:#d7923d,color:#603a13;
+  class helper,ci,secret source;
+  class guide,java,osv,ocr,audit workflow;
+  class agent,review tool;
+  class build,scan,report outcome;
+  class model external;

@@ -38,4 +38,4 @@ jobs:
     with:
       model: deepseek-flash
     secrets:
-      api-key: ${{ secrets.DEEPSEEK_API_KEY }}
+      api-key: ${{ secrets.LLM_API_KEY }}
