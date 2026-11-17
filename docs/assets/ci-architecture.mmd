@@ -1,0 +1,38 @@
+flowchart LR
+  subgraph consumer[业务项目]
+    direction TB
+    ci[ci.yml<br/>推送与 PR]
+    manual[security-audit.yml<br/>手动触发]
+    sched[security-schedule.yml<br/>定时或手动]
+  end
+  subgraph kit[dev-ci-kit 可复用工作流]
+    direction TB
+    java[java.yml<br/>编译与测试]
+    front[frontend.yml<br/>lint 与构建]
+    osv[security.yml<br/>依赖漏洞扫描]
+    ocr[ocr-review.yml<br/>PR 代码审查]
+    audit[security-audit.yml<br/>源码安全审查]
+  end
+  subgraph runtime[执行工具与结果（含外部服务）]
+    direction TB
+    build[Maven / npm<br/>构建与测试报告]
+    scan[OSV-Scanner<br/>依赖扫描结果]
+    review[OpenCodeReview + DeepSeek<br/>PR 审查意见]
+    agent[DeepSeek Harness + DeepSeek<br/>参考 Cloudflare 指引]
+    report[Actions Artifact<br/>源码审查报告]
+  end
+  ci --> java & front & osv & ocr
+  sched --> osv
+  manual --> audit
+  java & front --> build
+  osv --> scan
+  ocr --> review
+  audit --> agent --> report
+  classDef source fill:#e5f4f2,stroke:#29918e,color:#15383c;
+  classDef workflow fill:#ece7fa,stroke:#7962bc,color:#292143;
+  classDef tool fill:#e5effc,stroke:#4e82c4,color:#1b3555;
+  classDef outcome fill:#e5f5e8,stroke:#55a66b,color:#193d24;
+  class ci,manual,sched source;
+  class java,front,osv,ocr,audit workflow;
+  class agent tool;
+  class build,scan,review,report outcome;

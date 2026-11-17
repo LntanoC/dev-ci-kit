@@ -1,0 +1,10 @@
+name: Manual source security audit
+on:
+  workflow_dispatch:
+jobs:
+  audit:
+    permissions:
+      contents: read
+    uses: LntanoC/dev-ci-kit/.github/workflows/security-audit.yml@main
+    secrets:
+      deepseek-api-key: ${{ secrets.DEEPSEEK_API_KEY }}

@@ -15,7 +15,7 @@ def load(path):
 
 class WorkflowTests(unittest.TestCase):
     def test_reusable_workflows_have_valid_calls(self):
-        for path in (WORKFLOWS / name for name in ('java.yml', 'frontend.yml', 'security.yml', 'ocr-review.yml')):
+        for path in (WORKFLOWS / name for name in ('java.yml', 'frontend.yml', 'security.yml', 'ocr-review.yml', 'security-audit.yml')):
             with self.subTest(path=path.name):
                 workflow = load(path)
                 self.assertIn('workflow_call', workflow['on'])
@@ -49,6 +49,26 @@ class WorkflowTests(unittest.TestCase):
             with self.subTest(path=path):
                 triggers = load(path)['on']
                 self.assertNotIn('pull_request_target', triggers)
+
+    def test_audit_is_manual_private_and_read_only(self):
+        workflow = load(WORKFLOWS / 'security-audit.yml')
+        job = workflow['jobs']['audit']
+        self.assertIn("github.event_name == 'workflow_dispatch'", job['if'])
+        self.assertIn('github.event.repository.private', job['if'])
+        self.assertIn('github.event.repository.default_branch', job['if'])
+        self.assertEqual(job['permissions'], {'contents': 'read'})
+        step = next(s for s in job['steps'] if s.get('id') == 'audit')
+        self.assertIn('--permission-mode read-only --approval-policy never', step['run'])
+        self.assertIn('Do not execute target code', step['run'])
+        self.assertEqual(step['env']['DEEPSEEK_API_KEY'], '${{ secrets.deepseek-api-key }}')
+        install = next(s for s in job['steps'] if s.get('name') == 'Install DeepSeek Harness')
+        self.assertIn('@deepseek-ai/dsh@latest', install['run'])
+        self.assertIn('npm list', install['run'])
+        guidance = next(s for s in job['steps'] if s.get('name') == 'Check out audit guidance')
+        self.assertEqual(guidance['with']['repository'], 'cloudflare/security-audit-skill')
+        self.assertNotIn('ref', guidance['with'])
+        version = next(s for s in job['steps'] if s.get('name') == 'Record audit guidance version')
+        self.assertEqual(version['run'], 'git -C audit-guidance rev-parse HEAD')
 
 
 if __name__ == '__main__':
