@@ -28,6 +28,7 @@ flowchart LR
 | `frontend.yml` | 使用 Node.js 22 执行 `npm ci`、lint 和构建。 |
 | `security.yml` | 使用 OSV-Scanner：PR 检查新增漏洞；其他事件全量扫描并报告，但默认不因已有漏洞失败。 |
 | `ocr-review.yml` | 同仓库可信作者的非草稿 PR 使用 OpenCodeReview 和 DeepSeek 审查，并尝试在 PR 中发表意见。 |
+| `security-audit.yml` | 实验性、手动触发的源码安全审查，参考 Cloudflare security-audit Skill 的指导模式；仅供私有仓库默认分支调用。 |
 
 Java 测试是否需要数据库等服务取决于业务项目；本工具不会自动提供这些服务。报告仅包含 Maven Surefire 生成的文件；若没有生成文件则不会上传。安全扫描覆盖哪些依赖取决于 OSV 支持的清单和锁文件。AI 审查结果需要人工判断，运行成功也不代表没有漏洞或所有文件都被审查。
 
@@ -60,6 +61,12 @@ Skill 是安装时的本地副本，**不会自动随仓库更新**；要获得�
 - 示例仅允许同仓库、作者身份为 OWNER/MEMBER/COLLABORATOR 的非草稿 PR 运行 OCR。来自 fork 的 PR 会跳过；普通构建和安全检查仍会运行。
 - 此条件不能替代仓库访问控制：能修改同仓库工作流或提交代码的人员仍须可信，合并前应审查工作流变更。不要改用 `pull_request_target` 并执行不可信 PR 代码。
 - Java、前端和依赖扫描不需要 DeepSeek 密钥。OCR 不能代替测试、漏洞扫描和人工评审。
+
+## 实验性源码安全审查
+
+将 [手动审查示例](skills/dev-ci/assets/security-audit-manual.yml)复制到私有业务仓库的 `.github/workflows/`，在仓库 Actions secrets 中设置 `DEEPSEEK_API_KEY`，然后在默认分支的 Actions 页面手动运行。审查由 DeepSeek Harness 的 headless 模式执行，会将选取的源码发送给 DeepSeek，产生 API 费用；使用前确认数据处理和费用可接受。Cloudflare 指引固定到提交，DeepSeek Harness 使用固定的预览版本；模板中的 `@main` 仍会随本仓库更新。
+
+此功能是参考 Cloudflare Skill 指导模式的实验性源码审查，不执行其完整六阶段审计，也不保证独立 Agent 验证、完整覆盖或发现全部漏洞。提示词要求不运行项目代码，但提示词不是执行隔离保证；Harness 的只读权限不是 Cloudflare 要求的目标代码运行沙箱，不能依靠它限制网络或读取范围。只审查可信默认分支，避免使用不可信仓库内容，注意提示注入与 API 密钥泄露风险。Harness 可能向 DeepSeek 上传会话日志；禁用遥测不等于禁用该日志，使用前确认数据政策。报告和日志可能包含敏感源码和漏洞细节，结果上传为保留 5 天的 Actions artifact；私有仓库中仍须确认访问人员均可信。非私有仓库、非默认分支和非手动事件会跳过任务。模型失败、超时或没有报告不代表安全；完整接入仍须在真实 GitHub 运行中验证。
 
 ## 开发与验证
 
